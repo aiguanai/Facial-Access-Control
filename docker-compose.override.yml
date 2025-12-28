@@ -1,0 +1,82 @@
+# Development overrides - automatically loaded by docker-compose
+# Mounts source code for hot reload
+
+services:
+  api-gateway:
+    volumes:
+      - ./services/api-gateway/src:/app/src
+      - ./services/api-gateway/package.json:/app/package.json
+    command: npm run dev
+
+  auth-orchestration:
+    volumes:
+      - ./services/auth-orchestration/src:/app/src
+      - ./services/auth-orchestration/package.json:/app/package.json
+    command: npm run dev
+
+  profile-service:
+    volumes:
+      - ./services/profile-service/src:/app/src
+      - ./services/profile-service/package.json:/app/package.json
+    command: npm run dev
+
+  media-service:
+    volumes:
+      - ./services/media-service/src:/app/src
+      - ./services/media-service/package.json:/app/package.json
+    command: npm run dev
+
+  face-matching:
+    volumes:
+      - ./services/face-matching:/app
+    command: python -m uvicorn main:app --host 0.0.0.0 --port 3004 --reload
+
+  liveness-service:
+    volumes:
+      - ./services/liveness-service:/app
+    command: python -m uvicorn main:app --host 0.0.0.0 --port 3005 --reload
+
+  behavioural-service:
+    volumes:
+      - ./services/behavioural-service/src:/app/src
+      - ./services/behavioural-service/package.json:/app/package.json
+    command: npm run dev
+
+  risk-engine:
+    volumes:
+      - ./services/risk-engine/src:/app/src
+      - ./services/risk-engine/package.json:/app/package.json
+    command: npm run dev
+
+  mfa-service:
+    volumes:
+      - ./services/mfa-service/src:/app/src
+      - ./services/mfa-service/package.json:/app/package.json
+    command: npm run dev
+
+  session-service:
+    volumes:
+      - ./services/session-service/src:/app/src
+      - ./services/session-service/package.json:/app/package.json
+    command: npm run dev
+
+  audit-service:
+    volumes:
+      - ./services/audit-service/src:/app/src
+      - ./services/audit-service/package.json:/app/package.json
+    command: npm run dev
+
+  analytics-service:
+    volumes:
+      - ./services/analytics-service/src:/app/src
+      - ./services/analytics-service/package.json:/app/package.json
+    command: npm run dev
+
+  frontend:
+    volumes:
+      - ./frontend/src:/app/src
+      - ./frontend/public:/app/public
+      - ./frontend/package.json:/app/package.json
+    command: npm run dev
+    environment:
+      NODE_ENV: development

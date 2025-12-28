@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
@@ -8,7 +8,9 @@ RUN npm ci
 COPY . .
 RUN npm run build
 
-FROM node:18-alpine
+FROM node:20-alpine
+
+RUN apk add --no-cache wget
 
 WORKDIR /app
 
@@ -19,5 +21,7 @@ COPY --from=builder /app/dist ./dist
 
 EXPOSE 3012
 
-CMD ["node", "dist/index.js"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD wget -q --spider http://localhost:3012/health || exit 1
 
+CMD ["node", "dist/index.js"]
