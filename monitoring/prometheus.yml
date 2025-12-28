@@ -1,0 +1,49 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: 'api-gateway'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - faceauth
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: api-gateway
+
+  - job_name: 'auth-orchestration'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - faceauth
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: auth-orchestration
+
+  - job_name: 'face-matching'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - faceauth
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: face-matching
+
+  - job_name: 'liveness-service'
+    kubernetes_sd_configs:
+      - role: pod
+        namespaces:
+          names:
+            - faceauth
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_pod_label_app]
+        action: keep
+        regex: liveness-service
+

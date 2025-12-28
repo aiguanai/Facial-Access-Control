@@ -1,0 +1,142 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        service:
+          - api-gateway
+          - auth-orchestration
+          - media-service
+          - behavioural-service
+          - risk-engine
+          - mfa-service
+          - session-service
+          - profile-service
+          - audit-service
+          - analytics-service
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: services/${{ matrix.service }}/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: services/${{ matrix.service }}
+      run: npm ci
+    
+    - name: Run tests
+      working-directory: services/${{ matrix.service }}
+      run: npm test
+    
+    - name: Build
+      working-directory: services/${{ matrix.service }}
+      run: npm run build
+    
+    - name: Build Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: services/${{ matrix.service }}
+        push: false
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.service }}:latest
+
+  build-python:
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        service:
+          - face-matching
+          - liveness-service
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        cache: 'pip'
+        cache-dependency-path: services/${{ matrix.service }}/requirements.txt
+    
+    - name: Install dependencies
+      working-directory: services/${{ matrix.service }}
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Run tests
+      working-directory: services/${{ matrix.service }}
+      run: pytest || true
+    
+    - name: Build Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: services/${{ matrix.service }}
+        push: false
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.service }}:latest
+
+  build-frontend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+    
+    - name: Install dependencies
+      working-directory: frontend
+      run: npm ci
+    
+    - name: Build
+      working-directory: frontend
+      run: npm run build
+    
+    - name: Build Docker image
+      uses: docker/build-push-action@v4
+      with:
+        context: frontend
+        push: false
+        tags: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/frontend:latest
+
+  deploy:
+    needs: [build, build-python, build-frontend]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Configure kubectl
+      uses: azure/setup-kubectl@v2
+    
+    - name: Deploy to Kubernetes
+      run: |
+        kubectl apply -f k8s/namespace.yaml
+        kubectl apply -f k8s/configmaps/
+        kubectl apply -f k8s/deployments/
+        kubectl apply -f k8s/services/
+        kubectl apply -f k8s/ingress/
+

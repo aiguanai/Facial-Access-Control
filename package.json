@@ -1,0 +1,30 @@
+{
+  "name": "faceauth-system",
+  "version": "1.0.0",
+  "description": "Deepfake-Resistant Facial Authentication Framework",
+  "private": true,
+  "workspaces": [
+    "services/*",
+    "frontend"
+  ],
+  "scripts": {
+    "dev": "powershell -ExecutionPolicy Bypass -File ./dev.ps1",
+    "dev:unix": "make dev",
+    "build": "powershell -ExecutionPolicy Bypass -File ./build.ps1",
+    "build:unix": "make build",
+    "test": "powershell -ExecutionPolicy Bypass -File ./test.ps1",
+    "test:unix": "make test",
+    "clean": "powershell -ExecutionPolicy Bypass -File ./clean.ps1",
+    "clean:unix": "make clean"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}
+
+
